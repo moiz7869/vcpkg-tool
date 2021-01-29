@@ -5,8 +5,8 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
     - bash: |
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
-        ninja -C build.amd64.debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
+        make -j 2 -C build.amd64.debug
       displayName: "Build vcpkg with CMake"
       failOnStderr: true
     - bash: build.amd64.debug/vcpkg-test
@@ -23,8 +23,8 @@ jobs:
     vmImage: 'macos-latest'
   steps:
     - bash: |
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
-        ninja -C build.amd64.debug
+        cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
+        make -j 2 -C build.amd64.debug
       displayName: "Build vcpkg with CMake"
       failOnStderr: true
     - bash: build.amd64.debug/vcpkg-test
