@@ -59,7 +59,6 @@ jobs:
         ArtifactName: 'format.diff'
     - task: CmdLine@2
       displayName: "Build vcpkg with CMake, and Run Tests"
-      condition: eq('${{ parameters.triplet }}', 'x86-windows')
       inputs:
         script: |
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x86 -host_arch=x86
