@@ -1,5 +1,42 @@
 jobs:
+- job: linux
+  displayName: 'Linux'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+    - bash: |
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
+        ninja -C build.amd64.debug
+      displayName: "Build vcpkg with CMake"
+      failOnStderr: true
+    - bash: build.amd64.debug/vcpkg-test
+      displayName: 'Run vcpkg tests'
+    - task: PowerShell@2
+      displayName: 'Run vcpkg end-to-end tests'
+      inputs:
+        filePath: 'azure-pipelines/end-to-end-tests.ps1'
+        arguments: '-Triplet x64-linux -WorkingRoot work'
+        pwsh: true
+- job: osx
+  displayName: 'OSX'
+  pool:
+    vmImage: 'macos-latest'
+  steps:
+    - bash: |
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug
+        ninja -C build.amd64.debug
+      displayName: "Build vcpkg with CMake"
+      failOnStderr: true
+    - bash: build.amd64.debug/vcpkg-test
+      displayName: 'Run vcpkg tests'
+    - task: PowerShell@2
+      displayName: 'Run vcpkg end-to-end tests'
+      inputs:
+        filePath: 'azure-pipelines/end-to-end-tests.ps1'
+        arguments: '-Triplet x64-osx -WorkingRoot work'
+        pwsh: true
 - job: windows
+  displayName: 'Windows'
   pool:
     vmImage: 'windows-latest'
   steps:
@@ -11,7 +48,7 @@ jobs:
     - task: Powershell@2
       displayName: 'Create Diff'
       inputs:
-        filePath: scripts/azure-pipelines/Create-PRDiff.ps1
+        filePath: azure-pipelines/Create-PRDiff.ps1
         arguments: '-DiffFile $(DiffFile)'
         pwsh: true
     - task: PublishBuildArtifacts@1
@@ -20,3 +57,14 @@ jobs:
       inputs:
         PathtoPublish: '$(DiffFile)'
         ArtifactName: 'format.diff'
+    - task: CmdLine@2
+      displayName: "Build vcpkg with CMake, and Run Tests"
+      condition: eq('${{ parameters.triplet }}', 'x86-windows')
+      inputs:
+        script: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=x86 -host_arch=x86
+          rmdir /s /q build.x86.debug > nul 2> nul
+          cmake.exe -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.x86.debug -S toolsrc
+          ninja.exe -C build.x86.debug
+          build.x86.debug\vcpkg-test.exe
+        failOnStderr: true
