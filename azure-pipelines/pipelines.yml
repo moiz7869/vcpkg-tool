@@ -10,8 +10,8 @@ jobs:
       value: $(Build.SourcesDirectory)/vcpkg-root
   steps:
     - bash: |
-        git clone https://github.com/microsoft/vcpkg vcpkg-root -n
-        git -C vcpkg-root checkout $VCPKG_REPO_COMMIT_SHA
+        git clone https://github.com/microsoft/vcpkg "$VCPKG_ROOT" -n
+        git -C "$VCPKG_ROOT" checkout $VCPKG_REPO_COMMIT_SHA
       displayName: "Clone vcpkg repo to serve as root"
     - bash: |
         cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.amd64.debug
@@ -35,8 +35,8 @@ jobs:
       value: $(Build.SourcesDirectory)/vcpkg-root
   steps:
     - bash: |
-        git clone https://github.com/microsoft/vcpkg vcpkg-root -n
-        git -C vcpkg-root checkout $VCPKG_REPO_COMMIT_SHA
+        git clone https://github.com/microsoft/vcpkg "$VCPKG_ROOT" -n
+        git -C "$VCPKG_ROOT" checkout $VCPKG_REPO_COMMIT_SHA
       displayName: "Clone vcpkg repo to serve as root"
     - bash: |
         cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DVCPKG_DEVELOPMENT_WARNINGS=ON -DVCPKG_WARNINGS_AS_ERRORS=ON -DVCPKG_BUILD_FUZZING=ON -B build.amd64.debug
@@ -59,7 +59,7 @@ jobs:
   - name: DiffFile
     value: $(Build.ArtifactStagingDirectory)\format.diff
   - name: 'VCPKG_ROOT'
-    value: $(Build.SourcesDirectory)/vcpkg-root
+    value: $(Build.SourcesDirectory)\vcpkg-root
   steps:
     - task: Powershell@2
       displayName: 'Format C++'
@@ -79,7 +79,7 @@ jobs:
         PathtoPublish: '$(DiffFile)'
         ArtifactName: 'format.diff'
     - script: |
-        git clone https://github.com/microsoft/vcpkg vcpkg-root -n
+        git clone https://github.com/microsoft/vcpkg "%VCPKG_ROOT%" -n
         git -C vcpkg-root checkout %VCPKG_REPO_COMMIT_SHA%
       displayName: "Clone vcpkg repo to serve as root"
     - task: CmdLine@2
@@ -92,3 +92,9 @@ jobs:
           ninja.exe -C build.x86.debug
           build.x86.debug\vcpkg-test.exe
         failOnStderr: true
+    - task: PowerShell@2
+      displayName: 'Run vcpkg end-to-end tests'
+      inputs:
+        filePath: 'azure-pipelines/end-to-end-tests.ps1'
+        arguments: '-Triplet x86-windows -WorkingRoot work'
+        pwsh: true
